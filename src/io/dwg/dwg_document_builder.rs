@@ -3270,9 +3270,11 @@ impl DwgDocumentBuilder {
                         model_space
                     };
                 }
-                if !valid_owners.contains(&owner) && model_is_valid {
-                    owner = model_space;
-                }
+                // An entity whose owner block no longer exists (e.g. the anonymous
+                // *D block of an erased dimension) is an orphan. AutoCAD and the ODA
+                // converter do not draw it; re-homing it into model space drew phantom
+                // dimensions with stale values. Leave it out of every block instead.
+                // (hakanaktt/acadrust#133)
                 if common.owner_handle != owner {
                     std::sync::Arc::make_mut(entity).common_mut().owner_handle = owner;
                 }
